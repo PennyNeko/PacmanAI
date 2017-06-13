@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import entrants.pacman.aristocat.Evaluator;
 import pacman.controllers.MASController;
 import pacman.controllers.examples.po.POCommGhosts;
 import pacman.game.Constants.MOVE;
@@ -15,11 +16,13 @@ public class MCTSTree {
 	//private static int INTERATIONS_PER_NODE = 1;
 	private static Random rng = new Random();
 	private static long TIME_BUFFER = 5;
+	
 	private Game game;
 	private MASController ghosts;
+	private Evaluator eval;
 	private MCTSNode root;
 	
-	public MCTSTree(Game game) {
+	public MCTSTree(Game game, Evaluator eval) {
 		GameInfo info = game.getPopulatedGameInfo();
 		info.fixGhosts((ghost) -> new Ghost(
                 ghost,
@@ -30,6 +33,7 @@ public class MCTSTree {
         ));
 		this.game = game.getGameFromInfo(info);
 		this.ghosts = new POCommGhosts(50);
+		this.eval = eval;
 		this.root = null;
 	}
 	
@@ -37,7 +41,7 @@ public class MCTSTree {
 		long startTime = System.currentTimeMillis();
 		
 		// Initialize the tree with a neutral root
-		root = new MCTSNode(MOVE.NEUTRAL);
+		root = new MCTSNode(MOVE.NEUTRAL, eval);
 		root.visit(game, ghosts);
 		
 		while(root.hasChildrenLeft()) {
@@ -45,7 +49,8 @@ public class MCTSTree {
 		}
 		
 		MCTSNode next = root;
-		for(int i = 0; i < 50; ++i) {
+		//for(int i = 0; i < 100; ++i) {
+		while((System.currentTimeMillis() - startTime) < (timeAvailable - TIME_BUFFER)) {
 			next = getNextNode(next);
 			next.visitChild(ghosts);
 		}
@@ -53,13 +58,12 @@ public class MCTSTree {
 	
 	public MOVE getBestMove() {
 		List<MOVE> best = new ArrayList<>();
-		int bestValue = Integer.MIN_VALUE;
-		
+		double bestValue = Double.MIN_VALUE;
+
+		System.out.print("Values: ");
 		for(MCTSNode curr : root.getChildrenVisited()) {
-			int currValue = curr.getValue();
-			if(curr.getMove() == MOVE.UP) {
-				//System.out.println(currValue + " " + bestValue);
-			}
+			double currValue = curr.getValue();
+			System.out.print(curr.getMove() + " " + currValue + ", ");
 			if(currValue == bestValue) {
 				best.add(curr.getMove());
 			} else if(currValue > bestValue) {
@@ -68,8 +72,11 @@ public class MCTSTree {
 				best.add(curr.getMove());
 			}
 		}
+		System.out.println();
 		
-		if(best.size() > 1) {
+		if(best.isEmpty()) {
+			return MOVE.NEUTRAL;
+		} else if(best.size() > 1) {
 			// Check if one of them is our previous move
 			for(MOVE move : best) {
 				if(move.equals(game.getPacmanLastMoveMade())) {
@@ -85,19 +92,18 @@ public class MCTSTree {
 	}
 	
 	private MCTSNode getNextNode(MCTSNode last) {
-		
-		while(!last.getChildrenVisited().isEmpty()) {
+		/*while(!last.getChildrenVisited().isEmpty()) {
 			if(rng.nextInt(last.getChildrenLeft().size() + last.getChildrenVisited().size())
 					< last.getChildrenLeft().size()) {
 				return last;
 			} else {
 				last = last.getChildrenVisited().get(rng.nextInt(last.getChildrenVisited().size())); 
 			}
-		}
-		// For now do depth first search
-		/*while(!last.getChildrenVisited().isEmpty()) {
-			last = last.getChildrenVisited().get(rng.nextInt(last.getChildrenVisited().size()));
 		}*/
+		// For now do depth first search
+		while(!last.getChildrenVisited().isEmpty()) {
+			last = last.getChildrenVisited().get(rng.nextInt(last.getChildrenVisited().size()));
+		}
 		
 		return last;
 	}

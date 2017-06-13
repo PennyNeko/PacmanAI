@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import entrants.pacman.aristocat.Evaluator;
 import entrants.util.GameUtil;
 import pacman.controllers.MASController;
 import pacman.game.Constants.MOVE;
@@ -16,12 +17,14 @@ public class MCTSNode {
 	
 	private Game state;
 	private MOVE move;
+	private Evaluator eval;
 	private List<MCTSNode> childrenVisited;
 	private List<MCTSNode> childrenLeft;
 	
-	public MCTSNode(MOVE move) {
+	public MCTSNode(MOVE move, Evaluator eval) {
 		this.state = null;
 		this.move = move;
+		this.eval = eval;
 		this.childrenVisited = new ArrayList<>();
 		this.childrenLeft = new ArrayList<>();
 	}
@@ -29,11 +32,16 @@ public class MCTSNode {
 	public void visit(Game game, MASController ghosts) {
 		// Copy and advance the game state with the node's move
 		state = game.copy();
-		state.advanceGame(move, ghosts.getMove(state.copy(), GHOST_TIME));
+		if(move != MOVE.NEUTRAL) {
+			do {
+				state.advanceGame(move, ghosts.getMove(state.copy(), GHOST_TIME));
+			} while(GameUtil.getPossibleMoves(state).contains(move) &&
+					!state.isJunction(state.getPacmanCurrentNodeIndex()));
+		}
 		
 		// Initialize the children
 		for(MOVE move : GameUtil.getPossibleMoves(this.state)) {
-			this.childrenLeft.add(new MCTSNode(move));
+			this.childrenLeft.add(new MCTSNode(move, eval));
 		}
 	}
 	
@@ -64,16 +72,16 @@ public class MCTSNode {
 		return !childrenLeft.isEmpty();
 	}
 	
-	public int getValue() {
-		if(childrenVisited.isEmpty()) {
-			return state.getScore();
-		} else {
-			int maxValue = Integer.MIN_VALUE;
+	public double getValue() {
+		//if(childrenVisited.isEmpty()) {
+		return eval.evaluate(state.getScore(), state.getPacmanNumberOfLivesRemaining(), state.getTotalTime());
+		/*} else {
+			int average = 0;
 			for(MCTSNode child : childrenVisited) {
-				maxValue = Math.max(maxValue, child.getValue());
+				average += child.getValue();
 			}
-			return maxValue;
-		}
+			return (int)(average / (double)childrenVisited.size());
+		}*/
 	}
 	
 	public MOVE getMove() {
