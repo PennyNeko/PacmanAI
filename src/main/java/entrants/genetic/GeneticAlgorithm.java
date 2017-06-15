@@ -78,7 +78,9 @@ public class GeneticAlgorithm
 	
 	private List<Evaluable<Double>> mutatePopulation(List<Evaluable<Double>> pop) {
 		for(Evaluable<Double> individual : pop) {
-			individual.mutate(MUTATION_CHANCE);
+			if(ThreadLocalRandom.current().nextDouble() < MUTATION_CHANCE) {
+				individual.mutate();
+			}
 		}
 		return pop;
 	}

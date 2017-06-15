@@ -60,10 +60,10 @@ public class MCTSTree {
 		List<MOVE> best = new ArrayList<>();
 		double bestValue = Double.MIN_VALUE;
 
-		System.out.print("Values: ");
+		//System.out.print("Values: ");
 		for(MCTSNode curr : root.getChildrenVisited()) {
 			double currValue = curr.getValue();
-			System.out.print(curr.getMove() + " " + currValue + ", ");
+			//System.out.print(curr.getMove() + " " + currValue + ", ");
 			if(currValue == bestValue) {
 				best.add(curr.getMove());
 			} else if(currValue > bestValue) {
@@ -72,7 +72,7 @@ public class MCTSTree {
 				best.add(curr.getMove());
 			}
 		}
-		System.out.println();
+		//System.out.println();
 		
 		if(best.isEmpty()) {
 			return MOVE.NEUTRAL;

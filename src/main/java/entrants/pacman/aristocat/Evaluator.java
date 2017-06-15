@@ -57,7 +57,7 @@ public class Evaluator
 	public String toString() {
 		String res = "";
 		for(int i = 0; i < weights.length; ++i) {
-			res += weights[i] + ' ';
+			res += weights[i] + " ";
 		}
 		return res;
 	}
