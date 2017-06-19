@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import entrants.pacman.aristocat.Evaluator;
+import entrants.util.AccumGameState;
 import pacman.controllers.MASController;
 import pacman.controllers.examples.po.POCommGhosts;
 import pacman.game.Constants.MOVE;
@@ -18,11 +19,12 @@ public class MCTSTree {
 	private static long TIME_BUFFER = 5;
 	
 	private Game game;
+	private AccumGameState state;
 	private MASController ghosts;
 	private Evaluator eval;
 	private MCTSNode root;
 	
-	public MCTSTree(Game game, Evaluator eval) {
+	public MCTSTree(Game game, AccumGameState state, Evaluator eval) {
 		GameInfo info = game.getPopulatedGameInfo();
 		info.fixGhosts((ghost) -> new Ghost(
                 ghost,
@@ -32,6 +34,7 @@ public class MCTSTree {
                 MOVE.NEUTRAL
         ));
 		this.game = game.getGameFromInfo(info);
+		this.state = state;
 		this.ghosts = new POCommGhosts(50);
 		this.eval = eval;
 		this.root = null;
@@ -42,7 +45,7 @@ public class MCTSTree {
 		
 		// Initialize the tree with a neutral root
 		root = new MCTSNode(MOVE.NEUTRAL, eval);
-		root.visit(game, ghosts);
+		root.visit(game, state, ghosts);
 		
 		while(root.hasChildrenLeft()) {
 			root.visitChild(ghosts);
@@ -63,7 +66,7 @@ public class MCTSTree {
 		//System.out.print("Values: ");
 		for(MCTSNode curr : root.getChildrenVisited()) {
 			double currValue = curr.getValue();
-			//System.out.print(curr.getMove() + " " + currValue + ", ");
+			System.out.print(curr.getMove() + " " + currValue + ", ");
 			if(currValue == bestValue) {
 				best.add(curr.getMove());
 			} else if(currValue > bestValue) {
@@ -72,7 +75,7 @@ public class MCTSTree {
 				best.add(curr.getMove());
 			}
 		}
-		//System.out.println();
+		System.out.println();
 		
 		if(best.isEmpty()) {
 			return MOVE.NEUTRAL;
@@ -86,6 +89,7 @@ public class MCTSTree {
 			
 			// RNG it
 			return best.get(rng.nextInt(best.size()));
+			//return best.get(0);
 		} else {
 			return best.get(0);
 		}

@@ -30,10 +30,10 @@ public class Evaluator
 	
 	public double evaluate(double... ds) {
 		double sum = 0.0;
-		for(int i = 0; i < Math.min(ds.length, weights.length); ++i) {
+		for(int i = 0; i < Math.min(ds.length, weights.length) - 1; ++i) {
 			sum += ds[i] * weights[i];
 		}
-		return sum / weightSum;
+		return (int)(sum / (weightSum * weights[weights.length - 1])) * weights[weights.length - 1];
 	}
 	
 	public Evaluator combine(Evaluator eval) {

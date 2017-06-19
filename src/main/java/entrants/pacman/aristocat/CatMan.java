@@ -28,7 +28,7 @@ public class CatMan extends PacmanController implements Evaluable<Double> {
 	public static void main(String[] args) {
         Executor po = new Executor(true, true, true);
         po.setDaemon(true);
-        po.runGame(new CatMan(new Evaluator(1, 500, -1)), new POCommGhosts(50), true, 40);
+        po.runGame(new CatMan(new Evaluator(10, 50, -10, 0, 20, 50, 2)), new POCommGhosts(50), true, 40);
 		
         
 		/*final int POPULATION_SIZE = 10;
@@ -58,16 +58,12 @@ public class CatMan extends PacmanController implements Evaluable<Double> {
 	
     public MOVE getMove(Game game, long timeDue) {
     	//if(game.isJunction(game.getPacmanCurrentNodeIndex())) {
-    	state.update(game);
+    	game = state.update(game);
     	
-    	for(int i : game.getActivePillsIndices()) {
-    		System.out.print(i + " ");
-    	}
-    	System.out.println();
-        	MCTSTree tree = new MCTSTree(game, eval);
-        	tree.simulate(20);
-        	
-            return tree.getBestMove();
+        MCTSTree tree = new MCTSTree(game, state, eval);
+        tree.simulate(20);
+        
+        return tree.getBestMove();
     	/*} else {
     		List<MOVE> moves = GameUtil.getPossibleMoves(game);
     		if(moves.contains(game.getPacmanLastMoveMade())) {

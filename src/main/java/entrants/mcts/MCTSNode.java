@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import entrants.pacman.aristocat.Evaluator;
+import entrants.util.AccumGameState;
 import entrants.util.GameUtil;
 import pacman.controllers.MASController;
 import pacman.game.Constants.MOVE;
@@ -15,13 +16,15 @@ public class MCTSNode {
 	// TODO: does this need to be thread-safe?
 	private static Random rng = new Random();
 	
-	private Game state;
+	private Game game;
+	AccumGameState state;
 	private MOVE move;
 	private Evaluator eval;
 	private List<MCTSNode> childrenVisited;
 	private List<MCTSNode> childrenLeft;
 	
 	public MCTSNode(MOVE move, Evaluator eval) {
+		this.game = null;
 		this.state = null;
 		this.move = move;
 		this.eval = eval;
@@ -29,18 +32,20 @@ public class MCTSNode {
 		this.childrenLeft = new ArrayList<>();
 	}
 	
-	public void visit(Game game, MASController ghosts) {
+	public void visit(Game game, AccumGameState state, MASController ghosts) {
 		// Copy and advance the game state with the node's move
-		state = game.copy();
+		this.game = game.copy();
+		this.state = state.copy();
 		if(move != MOVE.NEUTRAL) {
 			do {
-				state.advanceGame(move, ghosts.getMove(state.copy(), GHOST_TIME));
-			} while(GameUtil.getPossibleMoves(state).contains(move) &&
-					!state.isJunction(state.getPacmanCurrentNodeIndex()));
+				this.game.advanceGame(move, ghosts.getMove(this.game.copy(), GHOST_TIME));
+				this.game = this.state.update(this.game);
+			} while(GameUtil.getPossibleMoves(this.game).contains(move) &&
+					!this.game.isJunction(this.game.getPacmanCurrentNodeIndex()));
 		}
 		
 		// Initialize the children
-		for(MOVE move : GameUtil.getPossibleMoves(this.state)) {
+		for(MOVE move : GameUtil.getPossibleMoves(this.game)) {
 			this.childrenLeft.add(new MCTSNode(move, eval));
 		}
 	}
@@ -52,7 +57,7 @@ public class MCTSNode {
 			// TODO: proper child selection
 			int nextIndex = rng.nextInt(childrenLeft.size());
 			MCTSNode next = childrenLeft.get(nextIndex);
-			next.visit(state, ghosts);
+			next.visit(this.game, this.state, ghosts);
 			
 			// Update the children lists
 			childrenVisited.add(next);
@@ -74,7 +79,12 @@ public class MCTSNode {
 	
 	public double getValue() {
 		//if(childrenVisited.isEmpty()) {
-		return eval.evaluate(state.getScore(), state.getPacmanNumberOfLivesRemaining(), state.getTotalTime());
+		return eval.evaluate(this.game.getScore(),
+				this.game.getPacmanNumberOfLivesRemaining(), 
+				this.game.getTotalTime(),
+				this.game.getNumberOfActivePowerPills(),
+				this.state.getPillPositionsSeen(),
+				this.state.getPowerPillPositionsSeen());
 		/*} else {
 			int average = 0;
 			for(MCTSNode child : childrenVisited) {
