@@ -3,9 +3,9 @@ package entrants.pacman.aristocat;
 import java.util.ArrayList;
 import java.util.List;
 
-import entrants.genetic.Evaluable;
+import entrants.genetic.GAIndividual;
 import entrants.genetic.GeneticAlgorithm;
-import entrants.mcts.MCTSTree;
+import entrants.pacman.aristocat.mcts.MCTSTree;
 import entrants.util.AccumGameState;
 import pacman.Executor;
 import pacman.controllers.MASController;
@@ -20,7 +20,7 @@ import pacman.game.GameView;
  * fill in the getMove() method. Any additional classes you write should either
  * be placed in this package or sub-packages (e.g., entrants.pacman.username).
  */
-public class CatMan extends PacmanController implements Evaluable<Double> {
+public class CatMan extends PacmanController implements GAIndividual<Double> {
 	
 	private Evaluator eval;
 	private AccumGameState state;
@@ -91,7 +91,7 @@ public class CatMan extends PacmanController implements Evaluable<Double> {
 	}
 
 	@Override
-	public Evaluable<Double> createOffspring(Evaluable<Double> parent)
+	public GAIndividual<Double> createOffspring(GAIndividual<Double> parent)
 	{
 		return new CatMan(eval.combine(((CatMan) parent).eval));
 	}
