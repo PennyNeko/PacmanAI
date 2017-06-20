@@ -7,6 +7,7 @@ import entrants.genetic.GAIndividual;
 import entrants.genetic.GeneticAlgorithm;
 import entrants.pacman.aristocat.mcts.MCTSTree;
 import entrants.util.AccumGameState;
+import entrants.util.Evaluator;
 import pacman.Executor;
 import pacman.controllers.MASController;
 import pacman.controllers.PacmanController;
@@ -26,11 +27,6 @@ public class CatMan extends PacmanController implements GAIndividual<Double> {
 	private AccumGameState state;
 	
 	public static void main(String[] args) {
-        /*Executor po = new Executor(true, true, true);
-        po.setDaemon(true);
-        po.runGame(new CatMan(new Evaluator(10, 50, -10, 0, 20, 50, 2)), new POCommGhosts(50), true, 40);*/
-		
-        
 		final int POPULATION_SIZE = 10;
 		final int PARENT_SIZE = 5;
 		final double MUTATION_RATE = 1.0;

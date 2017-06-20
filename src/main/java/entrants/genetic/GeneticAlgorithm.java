@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.omg.PortableServer.THREAD_POLICY_ID;
+
+import entrants.util.Evaluator;
+
 public class GeneticAlgorithm
 {
 	/**
@@ -21,6 +25,10 @@ public class GeneticAlgorithm
 		return res;
 	}
 	
+	/**
+	 * Number of threads used for evaluation.
+	 */
+	private static final int THREAD_COUNT = 4;
 	/**
 	 * Number of parents selected from the population for reproduction.
 	 */
@@ -114,10 +122,26 @@ public class GeneticAlgorithm
 	 * @return List of fitness values
 	 */
 	private static List<Double> evaluatePopulation(List<GAIndividual<Double>> pop) {
-		List<Double> fitness = new ArrayList<>(pop.size());
+		List<Double> fitness = new ArrayList<>();
 		
-		for(GAIndividual<Double> individual : pop) {
-			fitness.add(individual.evaluate());
+		FitnessEvaluator evals[] = new FitnessEvaluator[THREAD_COUNT];
+		Thread threads[] = new Thread[THREAD_COUNT];
+		for(int i = 0; i < THREAD_COUNT; ++i) {
+			evals[i] = new FitnessEvaluator(pop,
+					pop.size() * i / THREAD_COUNT,
+					pop.size() * (i + 1) / THREAD_COUNT);
+			threads[i] = new Thread(evals[i]);
+			threads[i].start();
+		}
+
+		try {
+			for(int i = 0; i < THREAD_COUNT; ++i) {
+				threads[i].join();
+				fitness.addAll(evals[i].getFitness());
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			System.exit(-1);
 		}
 		
 		return fitness;
@@ -226,5 +250,32 @@ public class GeneticAlgorithm
 		}
 		
 		return selection;
+	}
+	
+	private static class FitnessEvaluator implements Runnable {
+		private List<Double> fitness;
+		private List<GAIndividual<Double>> population;
+		private int start;
+		private int end;
+		
+		public FitnessEvaluator(List<GAIndividual<Double>> population, 
+								int start, int end) {
+			this.population = population;
+			this.start = start;
+			this.end = end;
+		}
+		
+		@Override
+		public void run() {
+			fitness = new ArrayList<>(end - start);
+			
+			for(int i = start; i < end; ++i) {
+				fitness.add(population.get(i).evaluate());
+			}
+		}
+		
+		public List<Double> getFitness() {
+			return fitness;
+		}
 	}
 }

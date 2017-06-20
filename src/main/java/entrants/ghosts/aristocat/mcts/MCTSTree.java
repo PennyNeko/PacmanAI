@@ -1,4 +1,4 @@
-package entrants.pacman.aristocat.mcts;
+package entrants.ghosts.aristocat.mcts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,9 @@ import java.util.Random;
 import entrants.util.AccumGameState;
 import entrants.util.Evaluator;
 import pacman.controllers.MASController;
+import pacman.controllers.PacmanController;
+import pacman.controllers.examples.Legacy2TheReckoning;
+import pacman.controllers.examples.RandomNonRevPacMan;
 import pacman.controllers.examples.po.POCommGhosts;
 import pacman.game.Constants.MOVE;
 import pacman.game.Game;
@@ -20,22 +23,15 @@ public class MCTSTree {
 	
 	private Game game;
 	private AccumGameState state;
-	private MASController ghosts;
+	private PacmanController pacman;
 	private Evaluator eval;
 	private MCTSNode root;
 	
 	public MCTSTree(Game game, AccumGameState state, Evaluator eval) {
 		GameInfo info = game.getPopulatedGameInfo();
-		info.fixGhosts((ghost) -> new Ghost(
-                ghost,
-                game.getCurrentMaze().lairNodeIndex,
-                -1,
-                -1,
-                MOVE.NEUTRAL
-        ));
 		this.game = game.getGameFromInfo(info);
 		this.state = state;
-		this.ghosts = new POCommGhosts(50);
+		this.pacman = new RandomNonRevPacMan();
 		this.eval = eval;
 		this.root = null;
 	}
@@ -45,10 +41,10 @@ public class MCTSTree {
 		
 		// Initialize the tree with a neutral root
 		root = new MCTSNode(MOVE.NEUTRAL, eval);
-		root.visit(game, state, ghosts);
+		root.visit(game, state, pacman);
 		
 		while(root.hasChildrenLeft()) {
-			root.visitChild(ghosts);
+			root.visitChild(pacman);
 		}
 		
 		MCTSNode next = root;

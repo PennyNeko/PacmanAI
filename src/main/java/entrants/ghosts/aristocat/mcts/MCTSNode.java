@@ -1,4 +1,4 @@
-package entrants.pacman.aristocat.mcts;
+package entrants.ghosts.aristocat.mcts;
 
 import java.util.ArrayList;
 import java.util.List;
