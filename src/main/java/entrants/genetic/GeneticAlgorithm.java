@@ -136,6 +136,7 @@ public class GeneticAlgorithm
 		int best = 0;
 		for(int i = 1; i < fitnesses.size(); ++i) {
 			if(fitnesses.get(i) > fitnesses.get(best)) {
+				bestIndividual = this.population.get(i);
 				best = i;
 				if(fitnesses.get(i) > bestIndividualTotalFitness) {
 					bestIndividualTotal = population.get(i);

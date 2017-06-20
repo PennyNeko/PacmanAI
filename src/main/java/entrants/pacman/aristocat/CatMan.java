@@ -26,19 +26,19 @@ public class CatMan extends PacmanController implements GAIndividual<Double> {
 	private AccumGameState state;
 	
 	public static void main(String[] args) {
-        Executor po = new Executor(true, true, true);
+        /*Executor po = new Executor(true, true, true);
         po.setDaemon(true);
-        po.runGame(new CatMan(new Evaluator(10, 50, -10, 0, 20, 50, 2)), new POCommGhosts(50), true, 40);
+        po.runGame(new CatMan(new Evaluator(10, 50, -10, 0, 20, 50, 2)), new POCommGhosts(50), true, 40);*/
 		
         
-		/*final int POPULATION_SIZE = 10;
+		final int POPULATION_SIZE = 10;
 		final int PARENT_SIZE = 5;
 		final double MUTATION_RATE = 1.0;
 		final double INITIAL_WIDTHS[] = {
-				10.0, 2000.0, 50.0
+				10.0, 200.0, 10.0, 5.0, 70.0, 100.0
 		};
 		
-        List<Evaluable<Double>> initialPopulation = new ArrayList<>(POPULATION_SIZE);
+        List<GAIndividual<Double>> initialPopulation = new ArrayList<>(POPULATION_SIZE);
         for(int i = 0; i < POPULATION_SIZE; ++i) {
         	initialPopulation.add(new CatMan(new Evaluator(INITIAL_WIDTHS.length).randomize(INITIAL_WIDTHS)));
         }
@@ -46,9 +46,9 @@ public class CatMan extends PacmanController implements GAIndividual<Double> {
         GeneticAlgorithm genetics = new GeneticAlgorithm(initialPopulation, PARENT_SIZE, MUTATION_RATE);
         for(int i = 0; i < 10; ++i) {
         	genetics.performIteration();
-        	CatMan best = (CatMan)genetics.getBestIndividual();
-        	System.out.println("Best individual: " + best.eval + " | Fitness: " + best.evaluate());
-        }*/
+        	CatMan best = (CatMan)genetics.getBestIndividualTotal();
+        	System.out.println("Best individual: " + best.eval);
+        }
     }
 	
 	public CatMan(Evaluator eval) {
@@ -86,8 +86,9 @@ public class CatMan extends PacmanController implements GAIndividual<Double> {
 		System.out.println("Evaluating");
 		Executor po = new Executor(true, true, true);
         po.setDaemon(true);
-        return po.runGameTimedSpeedOptimised(new CatMan(new Evaluator(1, 500, -1)),
-        		new POCommGhosts(50), true, false, "").getAverage();
+        //return po.runGameTimedSpeedOptimised(new CatMan(eval),
+        //		new POCommGhosts(50), true, false, "").getAverage();
+        return po.runExperiment(new CatMan(eval), new POCommGhosts(10), 1, "")[0].getAverage();
 	}
 
 	@Override
